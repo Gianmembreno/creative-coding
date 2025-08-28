@@ -2,30 +2,36 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import GameBoard from '@/components/game-of-life/GameBoard';
+import GameControls from '@/components/game-of-life/GameControls';
+import RulesModal from '@/components/game-of-life/RulesModal';
+import { useFullscreen } from '@/hooks/useFullscreen';
 
-const GRID_SIZE = 50;
-const CELL_SIZE = 8;
+const NORMAL_GRID_SIZE = 50;
+const FULLSCREEN_GRID_SIZE = 120;
+const NORMAL_CELL_SIZE = 8;
+const FULLSCREEN_CELL_SIZE = 6;
 
 type Grid = boolean[][];
 
-const createEmptyGrid = (): Grid => {
-  return Array(GRID_SIZE).fill(null).map(() => Array(GRID_SIZE).fill(false));
+const createEmptyGrid = (size: number): Grid => {
+  return Array(size).fill(null).map(() => Array(size).fill(false));
 };
 
-const createRandomGrid = (): Grid => {
-  return Array(GRID_SIZE).fill(null).map(() => 
-    Array(GRID_SIZE).fill(null).map(() => Math.random() > 0.7)
+const createRandomGrid = (size: number): Grid => {
+  return Array(size).fill(null).map(() => 
+    Array(size).fill(null).map(() => Math.random() > 0.7)
   );
 };
 
-const countNeighbors = (grid: Grid, x: number, y: number): number => {
+const countNeighbors = (grid: Grid, x: number, y: number, size: number): number => {
   let count = 0;
   for (let i = -1; i <= 1; i++) {
     for (let j = -1; j <= 1; j++) {
       if (i === 0 && j === 0) continue;
       const newX = x + i;
       const newY = y + j;
-      if (newX >= 0 && newX < GRID_SIZE && newY >= 0 && newY < GRID_SIZE) {
+      if (newX >= 0 && newX < size && newY >= 0 && newY < size) {
         if (grid[newX][newY]) count++;
       }
     }
@@ -33,12 +39,12 @@ const countNeighbors = (grid: Grid, x: number, y: number): number => {
   return count;
 };
 
-const nextGeneration = (grid: Grid): Grid => {
-  const newGrid = createEmptyGrid();
+const nextGeneration = (grid: Grid, size: number): Grid => {
+  const newGrid = createEmptyGrid(size);
   
-  for (let x = 0; x < GRID_SIZE; x++) {
-    for (let y = 0; y < GRID_SIZE; y++) {
-      const neighbors = countNeighbors(grid, x, y);
+  for (let x = 0; x < size; x++) {
+    for (let y = 0; y < size; y++) {
+      const neighbors = countNeighbors(grid, x, y, size);
       
       if (grid[x][y]) {
         // Cell is alive
@@ -53,19 +59,44 @@ const nextGeneration = (grid: Grid): Grid => {
   return newGrid;
 };
 
+// Helper function to resize grid when switching between modes
+const resizeGrid = (oldGrid: Grid, newSize: number): Grid => {
+  const newGrid = createEmptyGrid(newSize);
+  const oldSize = oldGrid.length;
+  const minSize = Math.min(oldSize, newSize);
+  
+  // Copy existing cells to new grid, centered
+  const offsetOld = Math.floor((oldSize - minSize) / 2);
+  const offsetNew = Math.floor((newSize - minSize) / 2);
+  
+  for (let x = 0; x < minSize; x++) {
+    for (let y = 0; y < minSize; y++) {
+      newGrid[x + offsetNew][y + offsetNew] = oldGrid[x + offsetOld][y + offsetOld];
+    }
+  }
+  
+  return newGrid;
+};
+
 export default function GameOfLife() {
-  const [grid, setGrid] = useState<Grid>(createEmptyGrid);
+  const [grid, setGrid] = useState<Grid>(() => createEmptyGrid(NORMAL_GRID_SIZE));
   const [isRunning, setIsRunning] = useState(false);
   const [generation, setGeneration] = useState(0);
   const [speed, setSpeed] = useState(100);
+  const [showRules, setShowRules] = useState(false);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const { isFullscreen, toggleFullscreen } = useFullscreen();
+  
+  // Dynamic grid and cell sizes based on fullscreen state
+  const gridSize = isFullscreen ? FULLSCREEN_GRID_SIZE : NORMAL_GRID_SIZE;
+  const cellSize = isFullscreen ? FULLSCREEN_CELL_SIZE : NORMAL_CELL_SIZE;
 
   const runSimulation = useCallback(() => {
     setGrid(prevGrid => {
       setGeneration(prev => prev + 1);
-      return nextGeneration(prevGrid);
+      return nextGeneration(prevGrid, gridSize);
     });
-  }, []);
+  }, [gridSize]);
 
   useEffect(() => {
     if (isRunning) {
@@ -98,20 +129,20 @@ export default function GameOfLife() {
   };
 
   const clear = () => {
-    setGrid(createEmptyGrid());
+    setGrid(createEmptyGrid(gridSize));
     setGeneration(0);
     setIsRunning(false);
   };
 
   const randomize = () => {
-    setGrid(createRandomGrid());
+    setGrid(createRandomGrid(gridSize));
     setGeneration(0);
   };
 
   const loadPattern = (pattern: 'glider' | 'blinker' | 'toad' | 'beacon') => {
-    const newGrid = createEmptyGrid();
-    const centerX = Math.floor(GRID_SIZE / 2);
-    const centerY = Math.floor(GRID_SIZE / 2);
+    const newGrid = createEmptyGrid(gridSize);
+    const centerX = Math.floor(gridSize / 2);
+    const centerY = Math.floor(gridSize / 2);
 
     switch (pattern) {
       case 'glider':
@@ -148,123 +179,77 @@ export default function GameOfLife() {
     setGeneration(0);
   };
 
+  // Handle fullscreen toggle - toggle internal state and resize grid
+  const handleFullscreenToggle = () => {
+    const newIsFullscreen = !isFullscreen;
+    const newGridSize = newIsFullscreen ? FULLSCREEN_GRID_SIZE : NORMAL_GRID_SIZE;
+    
+    // Resize the current grid to fit the new size
+    setGrid(prevGrid => resizeGrid(prevGrid, newGridSize));
+    
+    // Toggle internal fullscreen state
+    toggleFullscreen();
+  };
+
   return (
-    <div className="min-h-screen bg-black text-white p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <div className="flex items-center gap-4 mb-4">
-            <Link 
-              href="/" 
-              className="text-blue-400 hover:text-blue-300 transition-colors"
-            >
-              ← Back to Projects
-            </Link>
+    <div className={`min-h-screen bg-black text-white transition-all duration-300 ${
+      isFullscreen ? 'p-2' : 'p-4'
+    }`}>
+      <div className={`mx-auto ${
+        isFullscreen ? 'max-w-full h-screen flex flex-col' : 'max-w-6xl'
+      }`}>
+        {/* Header - hide in fullscreen */}
+        {!isFullscreen && (
+          <div className="mb-8">
+            <div className="flex items-center gap-4 mb-4">
+              <Link 
+                href="/" 
+                className="text-blue-400 hover:text-blue-300 transition-colors"
+              >
+                ← Back to Projects
+              </Link>
+            </div>
+            <h1 className="text-4xl font-bold mb-2">Conway&apos;s Game of Life</h1>
+            <p className="text-gray-300 text-lg">
+              A cellular automaton where complex patterns emerge from simple rules. 
+              Click cells to toggle them, or use the presets below.
+            </p>
           </div>
-          <h1 className="text-4xl font-bold mb-2">Conway&apos;s Game of Life</h1>
-          <p className="text-gray-300 text-lg">
-            A cellular automaton where complex patterns emerge from simple rules. 
-            Click cells to toggle them, or use the presets below.
-          </p>
-        </div>
+        )}
 
         {/* Controls */}
-        <div className="mb-6 flex flex-wrap gap-4 items-center">
-          <button
-            onClick={startStop}
-            className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-              isRunning 
-                ? 'bg-red-600 hover:bg-red-700 text-white' 
-                : 'bg-green-600 hover:bg-green-700 text-white'
-            }`}
-          >
-            {isRunning ? 'Stop' : 'Start'}
-          </button>
-          
-          <button
-            onClick={clear}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-colors"
-          >
-            Clear
-          </button>
-          
-          <button
-            onClick={randomize}
-            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors"
-          >
-            Random
-          </button>
-
-          <div className="flex items-center gap-2">
-            <label className="text-gray-300">Speed:</label>
-            <input
-              type="range"
-              min="50"
-              max="500"
-              value={speed}
-              onChange={(e) => setSpeed(Number(e.target.value))}
-              className="w-24"
-            />
-            <span className="text-gray-300 text-sm">{speed}ms</span>
-          </div>
-
-          <div className="text-gray-300">
-            Generation: <span className="font-mono">{generation}</span>
-          </div>
-        </div>
-
-        {/* Pattern Presets */}
-        <div className="mb-6">
-          <h3 className="text-lg font-semibold mb-2 text-gray-300">Patterns:</h3>
-          <div className="flex flex-wrap gap-2">
-            {(['glider', 'blinker', 'toad', 'beacon'] as const).map(pattern => (
-              <button
-                key={pattern}
-                onClick={() => loadPattern(pattern)}
-                className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded transition-colors capitalize"
-              >
-                {pattern}
-              </button>
-            ))}
-          </div>
+        <div className={`mb-6 ${isFullscreen ? 'flex-shrink-0' : ''}`}>
+          <GameControls
+            isRunning={isRunning}
+            generation={generation}
+            speed={speed}
+            onStartStop={startStop}
+            onClear={clear}
+            onRandomize={randomize}
+            onSpeedChange={setSpeed}
+            onPatternLoad={loadPattern}
+            onToggleFullscreen={handleFullscreenToggle}
+            onShowRules={() => setShowRules(true)}
+            isFullscreen={isFullscreen}
+          />
         </div>
 
         {/* Game Grid */}
-        <div className="flex justify-center">
-          <div 
-            className="grid border border-gray-600 bg-gray-900"
-            style={{ 
-              gridTemplateColumns: `repeat(${GRID_SIZE}, ${CELL_SIZE}px)`,
-              gap: '1px'
-            }}
-          >
-            {grid.map((row, x) =>
-              row.map((cell, y) => (
-                <div
-                  key={`${x}-${y}`}
-                  className={`cursor-pointer transition-colors ${
-                    cell ? 'bg-green-400' : 'bg-gray-800 hover:bg-gray-700'
-                  }`}
-                  style={{ 
-                    width: `${CELL_SIZE}px`, 
-                    height: `${CELL_SIZE}px` 
-                  }}
-                  onClick={() => toggleCell(x, y)}
-                />
-              ))
-            )}
-          </div>
+        <div className={`flex justify-center ${isFullscreen ? 'flex-1 items-center' : ''}`}>
+          <GameBoard
+            grid={grid}
+            gridSize={gridSize}
+            cellSize={cellSize}
+            onCellToggle={toggleCell}
+            isRunning={isRunning}
+          />
         </div>
 
-        {/* Rules */}
-        <div className="mt-8 max-w-2xl mx-auto">
-          <h3 className="text-xl font-semibold mb-4">Rules</h3>
-          <div className="space-y-2 text-gray-300">
-            <p>• Any live cell with 2 or 3 live neighbors survives</p>
-            <p>• Any dead cell with exactly 3 live neighbors becomes alive</p>
-            <p>• All other live cells die, and all other dead cells stay dead</p>
-          </div>
-        </div>
+        {/* Rules Modal */}
+        <RulesModal
+          isOpen={showRules}
+          onClose={() => setShowRules(false)}
+        />
       </div>
     </div>
   );
