@@ -215,16 +215,7 @@ export default function GameOfLife() {
               Click cells to toggle them, or use the presets below.
             </p>
           </div>
-<<<<<<< HEAD
-          <h1 className="text-4xl font-bold mb-2">Conway&apos;s Game of Life</h1>
-          <p className="text-gray-300 text-lg">
-            A cellular automaton where complex patterns emerge from simple rules. 
-            Click cells to toggle them, or use the presets below.
-          </p>
-        </div>
-=======
         )}
->>>>>>> 1978e825e3669b51a2eb2d08435d8246fe2d52ce
 
         {/* Controls */}
         <div className={`mb-6 ${isFullscreen ? 'flex-shrink-0' : ''}`}>

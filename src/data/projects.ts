@@ -12,16 +12,6 @@ export interface Project {
 // Sample project data - replace with your actual projects
 export const projects: Project[] = [
   {
-    id: 'GRTA',
-    title: 'GRTA - Pixel Art Face',
-    description: 'Fullscreen animated woman\'s face made of pixel-art style squares. Features smooth transitions between different emotions using a warm pink/magenta color palette.',
-    image: '/projects/pixel-art-face.svg',
-    tags: ['React', 'Animation', 'Pixel Art', 'Emotion'],
-    demoUrl: '/project/GRTA',
-    sourceUrl: 'https://github.com/yourusername/GRTA',
-    createdAt: '2025-08-28'
-  },
-  {
     id: 'game-of-life',
     title: 'Game of Life',
     description: 'Interactive implementation of Conway\'s Game of Life cellular automaton. Click to toggle cells and watch patterns evolve according to simple rules.',
