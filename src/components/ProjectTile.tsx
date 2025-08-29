@@ -11,7 +11,7 @@ export default function ProjectTile({ project }: ProjectTileProps) {
   
   const tileContent = (
     <div className="group relative bg-black rounded-xl overflow-hidden shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
-      {/* Project Image */}
+      {/* Project Image with overlay text */}
       <div className="relative aspect-square w-full overflow-hidden">
         <Image
           src={project.image}
@@ -23,11 +23,16 @@ export default function ProjectTile({ project }: ProjectTileProps) {
           blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
         
-        {/* Title overlay on hover */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-70 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
-          <h3 className="text-xl font-bold text-white text-center px-4">
-            {project.title}
-          </h3>
+        {/* Centered overlay text */}
+        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="text-center px-4">
+            <h3 className="text-xl font-bold text-white mb-2">
+              {project.title}
+            </h3>
+            <p className="text-sm text-gray-200 max-w-xs">
+              {project.description}
+            </p>
+          </div>
         </div>
       </div>
     </div>

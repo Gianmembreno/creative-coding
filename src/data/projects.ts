@@ -72,6 +72,26 @@ export const projects: Project[] = [
     createdAt: '2024-05-12'
   },
   {
+    id: 'clouds',
+    title: 'Floating Clouds',
+    description: 'Peaceful procedurally generated clouds that drift across the sky from right to left. Each cloud is unique and moves at its own pace. Click to add new clouds.',
+    image: '/projects/clouds.svg',
+    tags: ['p5.js', 'Generative', 'Animation'],
+    demoUrl: '/project/clouds',
+    sourceUrl: 'https://github.com/yourusername/clouds',
+    createdAt: '2024-08-28'
+  },
+  {
+    id: 'rain',
+    title: 'Rain Drops',
+    description: 'Peaceful falling raindrops with varying speeds and trajectories. Watch the gentle rhythm of rain create a calming atmosphere. Click to create splash effects.',
+    image: '/projects/rain.svg',
+    tags: ['p5.js', 'Animation', 'Weather'],
+    demoUrl: '/project/rain',
+    sourceUrl: 'https://github.com/yourusername/rain',
+    createdAt: '2024-08-29'
+  },
+  {
     id: '3d-sculptures',
     title: '3D Digital Sculptures',
     description: 'Three-dimensional art pieces created with Three.js. Interactive sculptures that respond to user input and showcase procedural geometry.',
