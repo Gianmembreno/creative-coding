@@ -161,7 +161,7 @@ export default function GameOfLife() {
               ← Back to Projects
             </Link>
           </div>
-          <h1 className="text-4xl font-bold mb-2">Conway's Game of Life</h1>
+          <h1 className="text-4xl font-bold mb-2">Conway&apos;s Game of Life</h1>
           <p className="text-gray-300 text-lg">
             A cellular automaton where complex patterns emerge from simple rules. 
             Click cells to toggle them, or use the presets below.
